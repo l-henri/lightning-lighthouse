@@ -39,6 +39,7 @@ int messageTimerMs = 300;
 int signalIntensity = 10;
 void setup() 
 {
+  pinMode(LED_BUILTIN, OUTPUT);
   ledsetup();
   cli();  
   for(int i=0;i<PIXELS;i++)
@@ -130,6 +131,7 @@ void turnLedsOff()
   }
   sei();
   show(); 
+  digitalWrite(LED_BUILTIN, LOW);
 }
 
 void turnLedsOn()
@@ -143,6 +145,7 @@ void turnLedsOn()
   }
   sei();
   show(); 
+  digitalWrite(LED_BUILTIN, HIGH);
 }
 /*
 Morse dictionnary
