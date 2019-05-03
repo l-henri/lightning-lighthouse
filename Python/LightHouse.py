@@ -3,7 +3,10 @@ import serial
 import time
 
 #The following line is for serial over GPIO
+# MAcbook
 port = 'COM9'
+# Raspberry
+# port = '/dev/ttyUSB0'
 
 
 ard = serial.Serial(port,9600,timeout=1)

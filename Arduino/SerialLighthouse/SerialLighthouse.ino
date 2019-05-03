@@ -36,7 +36,7 @@
 
 String messageString = "";
 int messageTimerMs = 300;
-int signalIntensity = 10;
+int signalIntensity = 60;
 void setup() 
 {
   pinMode(LED_BUILTIN, OUTPUT);
@@ -159,10 +159,10 @@ String morseDictionnary(char letter)
     case 'a':
       code = "01";
       break; 
-    case 'B':
+    case 'b':
       code = "1000";
       break;
-    case 'C':
+    case 'c':
       code = "1010";
       break;
     case 'd':
