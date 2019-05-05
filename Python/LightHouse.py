@@ -33,72 +33,54 @@ def sendMessageToArduino(message):
 
 def loadEmailCredentials():
 	with open(emailCredentialsJson) as emailCredentialsJsonLoaded:
-      retrievedElements = json.load(emailCredentialsJsonLoaded)
-      emailCredentialsJsonLoaded.close()
-      return (retrievedElements['email'], retrievedElements['password'])
+		retrievedElements = json.load(emailCredentialsJsonLoaded)
+		emailCredentialsJsonLoaded.close()
+		return retrievedElements
+
+def checkEmail(emailCredentials):
+	userName = emailCredentials["email"]
+	passwd = emailCredentials["password"]
+	emailServer = emailCredentials["emailServer"]
+	# try:
+	print("Connecting to imap server")
+	imapSession = imaplib.IMAP4_SSL(emailServer)
+	print("Opening session")
+	typ, accountDetails = imapSession.login(userName, passwd)
+	if typ != 'OK':
+		print('Not able to sign in!')
+		raise
+	print("Selecting emails")
+	imapSession.select('INBOX')
+	print("Searching")
+	typ, data = imapSession.search(None, 'ALL')
+	if typ != 'OK':
+		print('Error searching Inbox.')
+		raise
+	print("Iterating over all emails")
+	# Iterating over all emails
+	print(data)
+	for element in data:
+		print(data[element])
+	for msgId in data[0].split():
+		typ, messageParts = imapSession.fetch(msgId, '(RFC822)')
+		if typ != 'OK':
+			print('Error fetching mail.')
+			raise
+
+		emailBody = messageParts[0][1]
+		mail = email.message_from_string(emailBody)
+		print(mail)
+	imapSession.close()
+	imapSession.logout()
+	# except :
+	#     print('Not able to download all attachments.')
 
 def run():
-
+	_emailCredentials = loadEmailCredentials()
+	checkEmail(_emailCredentials)
 	_message = 'sos'.encode("utf-8")
-	sendMessageToArduino(_message)
-
-def checkEmail():
-	userName = ''
-	passwd = ''
-	try:
-	    print "Connecting to imap server"
-	    imapSession = imaplib.IMAP4_SSL('mail.register.eu')
-	    print "Opening session"
-	    typ, accountDetails = imapSession.login(userName, passwd)
-	    if typ != 'OK':
-	        print 'Not able to sign in!'
-	        raise
-	    print "Selecting emails"
-	    imapSession.select('INBOX')
-	    # typ, data = imapSession.search(None, 'ALL')
-	    deadline = time.time() - picDisplayTime
-	    requestTime = time.strftime('%d-%b-%Y', time.localtime(deadline))
-	    print "Searching inbox for emails after " + str(requestTime)
-
-	    typ, data = imapSession.search(None, '(SINCE ' + requestTime+ ')')
-	    
-	    if typ != 'OK':
-	        print 'Error searching Inbox.'
-	        raise
-	    print "Iterating over all emails"
-	    # Iterating over all emails
-	    for msgId in data[0].split():
-	        typ, messageParts = imapSession.fetch(msgId, '(RFC822)')
-	        if typ != 'OK':
-	            print 'Error fetching mail.'
-	            raise
-
-	        emailBody = messageParts[0][1]
-	        mail = email.message_from_string(emailBody)
-	        for part in mail.walk():
-
-	            if part.get_content_maintype() == 'multipart':
-	                # print part.as_string()
-	                continue
-	            if part.get('Content-Disposition') is None:
-	                # print part.as_string()
-	                continue
-	            fileName = part.get_filename()
-	            # Checking if a file is attached
-	            if bool(fileName):
-	                filePath = os.path.join(detach_dir, 'pics', fileName)
-	                if not os.path.isfile(filePath) :
-	                    print "File %s has been found" % fileName
-	                    # print filePath
-	                    fp = open(filePath, 'wb')
-	                    fp.write(part.get_payload(decode=True))
-	                    fp.close()
-	                    checkOrientation(filePath)
-	    imapSession.close()
-	    imapSession.logout()
-	except :
-	    print 'Not able to download all attachments.'
-
+	# _ardModule = initArduino()
+	# sendMessageToArduino(_message)
 
 if __name__ == '__main__':
   run()
