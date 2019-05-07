@@ -75,7 +75,7 @@ def checkEmail(emailCredentials):
 		mail = email.message_from_string(emailBody)
 		emailDomain = mail['from'].split('@')[1].split('>')[0]
 		sender = mail['from'].split('<')[1].split('>')[0]
-		if (emailDomain != authorizedEmailDomain):
+		if emailDomain not in authorizedEmailDomain:
 			if sender not in authorizedSenders:
 				continue
 		# print(mail['subject'])
