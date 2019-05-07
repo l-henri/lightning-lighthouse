@@ -45,6 +45,7 @@ def checkEmail(emailCredentials):
 	passwd = emailCredentials["password"]
 	emailServer = emailCredentials["emailServer"]
 	authorizedEmailDomain = emailCredentials["authorizedEmailDomain"]
+	authorizedSenders = emailCredentials["authorizedSenders"]
 	# try:
 	print("Connecting to imap server")
 	imapSession = imaplib.IMAP4_SSL(emailServer)
@@ -56,7 +57,7 @@ def checkEmail(emailCredentials):
 	print("Selecting emails")
 	imapSession.select('INBOX')
 	print("Searching")
-	typ, data = imapSession.search(None, 'ALL')
+	typ, data = imapSession.search(None, 'NEW')
 	if typ != 'OK':
 		print('Error searching Inbox.')
 		raise
@@ -73,8 +74,10 @@ def checkEmail(emailCredentials):
 		emailBody = messageParts[0][1].decode('utf-8')
 		mail = email.message_from_string(emailBody)
 		emailDomain = mail['from'].split('@')[1].split('>')[0]
+		sender = mail['from'].split('<')[1].split('>')[0]
 		if (emailDomain != authorizedEmailDomain):
-			continue
+			if sender not in authorizedSenders:
+				continue
 		# print(mail['subject'])
 		messagesList.append(mail['subject'])
 
@@ -89,6 +92,7 @@ def checkEmail(emailCredentials):
 def run():
 	_emailCredentials = loadEmailCredentials()
 	_messagesList = checkEmail(_emailCredentials)
+	print(_messagesList)
 	if _messagesList == []:
 		return
 	_ardModule = initArduino()
