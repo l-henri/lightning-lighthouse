@@ -5,12 +5,14 @@ import email
 import getpass, imaplib
 import json
 
+
 #The following line is for serial over GPIO
-# Macbook
-port = 'COM9'
+# Windows
+# port = 'COM9'
 # Raspberry
 # port = '/dev/ttyUSB0'
-
+# Macbook
+port = '/dev/cu.wchusbserial1420'
 emailCredentialsJson = 'emailCredentials.json'
 
 def initArduino():
@@ -18,8 +20,9 @@ def initArduino():
 	time.sleep(5)
 	return ard
 
-def sendMessageToArduino(message):
-
+def sendMessageToArduino(message, ard):
+	message = message.lower()
+	message = message.encode("utf-8")
 	print(ard.is_open)
 	ard.write(message)
 	time.sleep(1)
@@ -41,6 +44,7 @@ def checkEmail(emailCredentials):
 	userName = emailCredentials["email"]
 	passwd = emailCredentials["password"]
 	emailServer = emailCredentials["emailServer"]
+	authorizedEmailDomain = emailCredentials["authorizedEmailDomain"]
 	# try:
 	print("Connecting to imap server")
 	imapSession = imaplib.IMAP4_SSL(emailServer)
@@ -56,31 +60,40 @@ def checkEmail(emailCredentials):
 	if typ != 'OK':
 		print('Error searching Inbox.')
 		raise
-	print("Iterating over all emails")
+	print("Iterating over all new emails")
 	# Iterating over all emails
-	print(data)
-	for element in data:
-		print(data[element])
+	# print(data)
+	messagesList = []
 	for msgId in data[0].split():
 		typ, messageParts = imapSession.fetch(msgId, '(RFC822)')
 		if typ != 'OK':
 			print('Error fetching mail.')
 			raise
 
-		emailBody = messageParts[0][1]
+		emailBody = messageParts[0][1].decode('utf-8')
 		mail = email.message_from_string(emailBody)
-		print(mail)
+		emailDomain = mail['from'].split('@')[1].split('>')[0]
+		if (emailDomain != authorizedEmailDomain):
+			continue
+		# print(mail['subject'])
+		messagesList.append(mail['subject'])
+
+
+		# break
 	imapSession.close()
 	imapSession.logout()
 	# except :
 	#     print('Not able to download all attachments.')
+	return messagesList
 
 def run():
 	_emailCredentials = loadEmailCredentials()
-	checkEmail(_emailCredentials)
-	_message = 'sos'.encode("utf-8")
-	# _ardModule = initArduino()
-	# sendMessageToArduino(_message)
+	_messagesList = checkEmail(_emailCredentials)
+	if _messagesList == []:
+		return
+	_ardModule = initArduino()
+	for _message in _messagesList:
+		sendMessageToArduino(_message, _ardModule)
 
 if __name__ == '__main__':
   run()
