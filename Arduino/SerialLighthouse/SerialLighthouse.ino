@@ -36,7 +36,7 @@
 
 String messageString = "";
 int messageTimerMs = 300;
-int signalIntensity = 60;
+int signalIntensity = 10;
 void setup() 
 {
   pinMode(LED_BUILTIN, OUTPUT);

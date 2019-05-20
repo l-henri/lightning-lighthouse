@@ -34,7 +34,7 @@
 #define NS_TO_CYCLES(n) ( (n) / NS_PER_CYCLE )
 
 
-String messageString = "sos";
+String messageString = "hello wallace";
 int messageTimerMs = 300;
 int signalIntensity = 60;
 void setup() 
